@@ -2,16 +2,20 @@
 
 
 ## Loading and preprocessing the data
-
-The following code segment will download the data into a temporary file and then use read.csv to read it from the temporary file into the activityData data frame: 
+Load in the required packages:
 
 ```r
+library(lubridate)
 library(dplyr)
 ```
 
 ```
 ## 
 ## Attaching package: 'dplyr'
+## 
+## The following objects are masked from 'package:lubridate':
+## 
+##     intersect, setdiff, union
 ## 
 ## The following objects are masked from 'package:stats':
 ## 
@@ -21,6 +25,13 @@ library(dplyr)
 ## 
 ##     intersect, setdiff, setequal, union
 ```
+
+```r
+library(ggplot2)
+```
+
+
+The following code segment will download the data into a temporary file and then use read.csv to read it from the temporary file into the activityData data frame: 
 
 ```r
 temp <- tempfile()
@@ -35,7 +46,7 @@ The following code segment will calculate the number of steps for each day and p
 
 ```r
 dailySteps <- activityData %>% group_by(date) %>% summarize(dailySum = sum(steps, na.rm = T))
-hist(dailySteps$dailySum,  breaks = "scott", col = "darkred", main = "Steps Taken per Day", xlab = "Daily Steps")
+hist(dailySteps$dailySum,  breaks = "scott", col = "darkred", main = "Steps Taken per Day", xlab = "Number of Steps", ylab = "Number of Days")
 ```
 
 ![](PA1_template_files/figure-html/makeHist-1.png) 
@@ -137,7 +148,7 @@ The following code segment will calculate the number of steps for each day using
 
 ```r
 newDailySteps <- newActivityData %>% group_by(date) %>% summarize(dailySum = sum(steps))
-hist(newDailySteps$dailySum,  breaks = "scott", col = "darkred", main = "Steps Taken per Day", xlab = "Daily Steps")
+hist(newDailySteps$dailySum,  breaks = "scott", col = "darkred", main = "Steps Taken per Day", xlab = "Number of Steps", ylab = "Number of Days")
 ```
 
 ![](PA1_template_files/figure-html/makeNewHist-1.png) 
@@ -174,19 +185,17 @@ The overall daily average and median are both slightly increased using the new a
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-The following code will add new column "dayType" to the new activity data set, and appropriately set the new column to either "Weekday" or "Weekend". The new activity data set is then used to create the newIntervlaSteps data table with the average number of steps for each interval grouped by "dayType".  
+The following code will add new column "dayType" to the new activity data set, and appropriately set the new column to either "Weekday" or "Weekend". The new activity data set is then used to create the newIntervalSteps data table with the average number of steps for each interval grouped by "dayType".  
 
 ```r
-library(lubridate)
 newActivityData[,"dayType"] <- factor("Weekday", c("Weekday", "Weekend")) 
 newActivityData[grep("Sat|Sun", wday(newActivityData$date, label = T)),"dayType"] <- as.factor("Weekend")
 newIntervalSteps <- newActivityData %>% group_by(dayType, interval) %>% summarize(intervalMean = mean(steps))
 ```
 
-Next, the following code uses newIntervlaSteps to produce a time series plot of the five minute intervals averaged across weekday and weekend days. Interestingly, the two plots show some slight differences in the activity patterns between weekdays and weekends. As compared to the weekdays, the weekends seem to start off a bit slower for the first 10 hours (1000 on the x-axis), and then increase to a slightly higher level with a bit more volatility during the day before settling down again after 8:00 PM (2000 on the x-axis).     
+Next, the following code uses newIntervalSteps to produce a time series plot of the five minute intervals averaged across weekday and weekend days. Interestingly, the two plots show some slight differences in the activity patterns between weekdays and weekends. As compared to the weekdays, the weekends seem to start off a bit slower for the first 10 hours (1000 on the x-axis), and then increase to a slightly higher level with a bit more volatility during the day before settling down again after 8:00 PM (2000 on the x-axis).     
 
 ```r
-library(ggplot2)
 g <- ggplot(newIntervalSteps, aes(interval, intervalMean)) + 
          geom_line(stat = "identity", colour = "purple", size = 1) +
          facet_wrap(~ dayType, nrow = 2) +
